@@ -10,6 +10,7 @@ const Dashboard = () => {
     desistidos: 0,
     inadmitidos: 0,
     otrosEstados: 0,
+    totalPDFs: 0,
   });
 
   const [filters, setFilters] = useState({
@@ -147,7 +148,7 @@ const Dashboard = () => {
         <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             {/* Estadísticas */}
-            <div className="col-span-3 grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div className="col-span-3 grid grid-cols-2 md:grid-cols-6 gap-4">
               <div className="bg-gray-50 p-4 rounded-lg">
                 <h3 className="text-sm font-medium text-gray-600">Total Expedientes</h3>
                 <p className="text-2xl font-bold text-gray-700">{stats.totalExpedientes}</p>
@@ -167,6 +168,10 @@ const Dashboard = () => {
               <div className="bg-yellow-50 p-4 rounded-lg">
                 <h3 className="text-sm font-medium text-yellow-600">Inadmitidos</h3>
                 <p className="text-2xl font-bold text-yellow-700">{stats.inadmitidos}</p>
+              </div>
+              <div className="bg-purple-50 p-4 rounded-lg">
+                <h3 className="text-sm font-medium text-purple-600">PDFs Subidos</h3>
+                <p className="text-2xl font-bold text-purple-700">{stats.totalPDFs}</p>
               </div>
             </div>
             

@@ -561,6 +561,24 @@ async function getStats() {
     try {
         console.log('[DEBUG] Obteniendo estadísticas de la base de datos...');
         
+        // Contar PDFs físicos recursivamente
+        let totalPDFs = 0;
+        if (fs.existsSync(BASE_DIR)) {
+            function contarPDFsRecursivamente(directorio) {
+                const archivos = fs.readdirSync(directorio);
+                for (const archivo of archivos) {
+                    const rutaCompleta = path.join(directorio, archivo);
+                    if (fs.statSync(rutaCompleta).isDirectory()) {
+                        contarPDFsRecursivamente(rutaCompleta);
+                    } else if (archivo.toLowerCase().endsWith('.pdf')) {
+                        totalPDFs++;
+                    }
+                }
+            }
+            contarPDFsRecursivamente(BASE_DIR);
+            console.log(`[DEBUG] Total de PDFs encontrados: ${totalPDFs}`);
+        }
+        
         // Obtener todos los expedientes de la base de datos usando paginación
         let todosLosExpedientes = [];
         let page = 0;
@@ -607,7 +625,8 @@ async function getStats() {
             total: todosLosExpedientes.length,
             concedidos,
             desistidos,
-            inadmitidos
+            inadmitidos,
+            totalPDFs
         });
         
         return {
@@ -616,7 +635,8 @@ async function getStats() {
             concedidos: concedidos,
             desistidos: desistidos,
             inadmitidos: inadmitidos,
-            otrosEstados: todosLosExpedientes.length - (concedidos + desistidos + inadmitidos)
+            otrosEstados: todosLosExpedientes.length - (concedidos + desistidos + inadmitidos),
+            totalPDFs: totalPDFs
         };
     } catch (error) {
         console.error('[ERROR] Error obteniendo estadísticas:', error);
