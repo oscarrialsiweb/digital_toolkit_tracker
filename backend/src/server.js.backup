@@ -1,0 +1,41 @@
+require('dotenv').config({ path: './.env' }); // Cargar variables de entorno PRIMERO
+
+const express = require("express");
+const cors = require("cors");
+const { obtenerEnlacesPDF } = require("./services/pdfService");
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+app.use(cors());
+app.use(express.json());
+
+// Verificar que las variables de entorno necesarias estén definidas
+if (!process.env.PDF_DOWNLOAD_URL) {
+    console.error("Error: La variable de entorno PDF_DOWNLOAD_URL no está definida");
+    console.log("Variables de entorno cargadas:", process.env);
+    process.exit(1);
+}
+
+// Endpoint para listar PDFs
+app.get("/pdf/listar", async (req, res) => {
+    try {
+        const enlaces = await obtenerEnlacesPDF();
+        res.json({
+            mensaje: "Enlaces obtenidos exitosamente",
+            ...enlaces
+        });
+    } catch (error) {
+        res.status(500).json({
+            mensaje: "Error al obtener los enlaces",
+            error: error.message
+        });
+    }
+});
+
+app.listen(PORT, () => {
+    console.log(`Servidor corriendo en http://localhost:${PORT}`);
+    console.log("Variables de entorno cargadas:", {
+        PDF_DOWNLOAD_URL: process.env.PDF_DOWNLOAD_URL ? "Definida" : "No definida"
+    });
+}); 

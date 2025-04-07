@@ -1,0 +1,77 @@
+const axios = require("axios");
+const cheerio = require("cheerio");
+
+if (!process.env.PDF_DOWNLOAD_URL) {
+    throw new Error("La variable de entorno PDF_DOWNLOAD_URL no está definida");
+}
+
+const BASE_URL = process.env.PDF_DOWNLOAD_URL;
+
+// Función para obtener enlaces de PDFs desde la web
+async function obtenerEnlacesPDF() {
+    try {
+        console.log(`[DEBUG] Intentando acceder a: ${BASE_URL}`);
+        
+        const respuesta = await axios.get(BASE_URL, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                'Accept-Language': 'es-ES,es;q=0.8,en-US;q=0.5,en;q=0.3',
+                'Connection': 'keep-alive'
+            }
+        });
+        
+        console.log(`[DEBUG] Estado de la respuesta: ${respuesta.status}`);
+        console.log(`[DEBUG] Tipo de contenido: ${respuesta.headers['content-type']}`);
+        
+        const $ = cheerio.load(respuesta.data);
+        console.log("[DEBUG] Página cargada correctamente en Cheerio");
+
+        let enlacesPDF = [];
+        let totalEnlaces = 0;
+        let enlacesPDFEncontrados = 0;
+
+        // Buscar enlaces que contengan el patrón de documentos
+        $("a").each((_, element) => {
+            totalEnlaces++;
+            const enlace = $(element).attr("href");
+            if (enlace) {
+                console.log(`[DEBUG] Enlace encontrado: ${enlace}`);
+                
+                // Verificar si es un enlace de documento con el patrón específico
+                if (enlace.includes('/RedesTasks/rest/documentoservice/obtenerBinarioDocumento/')) {
+                    enlacesPDFEncontrados++;
+                    const urlCompleta = new URL(enlace, BASE_URL).href;
+                    enlacesPDF.push(urlCompleta);
+                }
+            }
+        });
+
+        console.log(`[INFO] Total de enlaces analizados: ${totalEnlaces}`);
+        console.log(`[INFO] Total de documentos encontrados: ${enlacesPDFEncontrados}`);
+
+        return {
+            mensaje: "Enlaces obtenidos exitosamente",
+            total: enlacesPDF.length,
+            enlaces: enlacesPDF
+        };
+    } catch (error) {
+        console.error("[ERROR] Detalles del error:", {
+            mensaje: error.message,
+            codigo: error.code,
+            url: BASE_URL,
+            stack: error.stack,
+            response: error.response ? {
+                status: error.response.status,
+                statusText: error.response.statusText,
+                headers: error.response.headers,
+                data: error.response.data ? error.response.data.substring(0, 500) + '...' : null
+            } : null
+        });
+        throw new Error(`No se pudieron obtener los enlaces: ${error.message}`);
+    }
+}
+
+module.exports = { 
+    obtenerEnlacesPDF
+}; 
